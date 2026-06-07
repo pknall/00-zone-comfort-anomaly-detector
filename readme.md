@@ -10,4 +10,7 @@ behavior.
 
 ---
 
+#### Dependencies
+* Python v3.14
+* psycopg2 v2.9.11
 
