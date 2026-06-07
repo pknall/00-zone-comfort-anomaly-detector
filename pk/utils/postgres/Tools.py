@@ -93,3 +93,7 @@ class Tools:
         curr.close()
         conn.close()
         return results
+
+    def get_value_with_id(self, table_name, column, id):
+        query = f"SELECT {column} FROM {table_name} WHERE id = {id}"
+        return self.execute_read_only_query(query)
