@@ -13,4 +13,5 @@ behavior.
 #### Dependencies
 * Python v3.14
 * psycopg2 v2.9.11
+* pandas v3.0.3
 
