@@ -38,23 +38,21 @@ if __name__ == '__main__':
         # Initialize trend search variables
         today = pd.Timestamp.today().normalize()
         start = today - pd.Timedelta(days=1)
-        end = today
-        merged = pd.DataFrame()
-        first = True
+        end = today - pd.Timedelta(minutes=1)
+        idx = pd.date_range(start=start, end=today, freq="1min")
+        merged_df = pd.DataFrame(index=idx)
+        merged_df.index.name = "ts"
 
-        # Retrieve the trends and merge into one dataframe on "ts"
+        # Retrieve the trends and merge into one dataframe on "ts", renaming the columns and changing to float
         for trend_id, trend_name in zip(trend_list_df[0], trend_list_df[1]):
             trend_data = psql_tools.get_trend_data_with_uuid(trend_id, start ,end)
-            if first:
-                first = False
-                merged = trend_data
-            else:
-                merged = merged.merge(trend_data, on="ts", how="outer")
-            last_name = merged.columns[-1]
-            merged.rename(columns={last_name: trend_name}, inplace=True)
-            merged[trend_name] = merged[trend_name].astype(float)
+            merged_df = merged_df.merge(trend_data, on="ts", how="right")
+            last_name = merged_df.columns[-1]
+            merged_df.rename(columns={last_name: trend_name}, inplace=True)
+            merged_df[trend_name] = merged_df[trend_name].astype(float)
 
-        merged.to_csv("csv\\merged.csv")
+        # At this point, merged contains all the trend data available between start and end, or null.
+        merged_df.to_csv("csv\\merged.csv")
 
     # Get a trend values from those trends for some period #############################################################
 

@@ -124,6 +124,7 @@ class Tools:
         params = {"start": start, "end":end}
         df = pd.read_sql(sql, conn, params=params, parse_dates=["ts"])
         df = df.set_index("ts")
+        conn.close()
         return df
 
     def get_table_name_from_uuid(self, uuid_string):
