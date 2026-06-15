@@ -1,6 +1,8 @@
 import os
 import psycopg2
 from psycopg2 import sql
+from sqlalchemy import create_engine
+import pandas as pd
 
 class Tools:
 
@@ -19,6 +21,16 @@ class Tools:
             password = os.environ.get("POSTGRES_PASSWORD"),
             port = os.environ.get("POSTGRES_PORT")
         )
+
+    def get_sqlalchemy_connection(self):
+        host = os.environ.get("POSTGRES_HOST"),
+        database = os.environ.get("POSTGRES_DATABASE"),
+        user = os.environ.get("POSTGRES_USERNAME"),
+        password = os.environ.get("POSTGRES_PASSWORD"),
+        port = os.environ.get("POSTGRES_PORT")
+        engine = create_engine(f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}")
+        return engine
+
 
     '''
     Add a table to the database if it doesn't already exist.  Include any default columns specific to the table.
@@ -97,3 +109,24 @@ class Tools:
     def get_value_with_id(self, table_name, column, id):
         query = f"SELECT {column} FROM {table_name} WHERE id = {id}"
         return self.execute_read_only_query(query)
+
+    def get_trend_data_with_uuid(self, uuid, start, end):
+        conn = self.get_connection()
+        table_name = self.get_table_name_from_uuid(uuid)
+
+        sql = f"""
+            SELECT ts,val
+            from {table_name}
+            WHERE ts >= %(start)s and ts <= %(end)s
+            ORDER BY ts;
+        """
+
+        params = {"start": start, "end":end}
+        df = pd.read_sql(sql, conn, params=params, parse_dates=["ts"])
+        df = df.set_index("ts")
+        return df
+
+    def get_table_name_from_uuid(self, uuid_string):
+        table_name = "uuid_" + uuid_string
+        table_name = table_name.replace("-", "_")
+        return table_name
